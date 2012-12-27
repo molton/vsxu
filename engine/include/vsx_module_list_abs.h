@@ -38,8 +38,9 @@ public:
   //     build_module_list("sound.recording.type=fmod;opengl.vsync=1;");
   virtual void init(vsx_string args = "") = 0;
 
-  // returns the modules
-  virtual std::vector< vsx_module_info* > get_module_list( bool include_hidden = false) = 0;
+  // Return a list of the modules
+  // Note that you must destroy the return value.
+  virtual std::vector< vsx_module_info* >* get_module_list( bool include_hidden = false) = 0;
 
   // Load Module By Name
   //   Used to load a vsxu module
@@ -48,10 +49,10 @@ public:
   //       Module identifier (i.e. path;to;module)
   //   Example use:
   //     load_module_by_name("math;oscillators;oscillator");
-  virtual void* load_module_by_name(vsx_string name) = 0;
+  virtual vsx_module* load_module_by_name(vsx_string name) = 0;
 
   // Unload Module
-  virtual void* unload_module( vsx_module* module_pointer ) = 0;
+  virtual void unload_module( vsx_module* module_pointer ) = 0;
 
   // Check presence of module
   virtual bool find( const vsx_string &module_name_to_look_for) = 0;

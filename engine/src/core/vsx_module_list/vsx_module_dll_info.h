@@ -37,6 +37,7 @@ public:
 #endif*/
   int module_id;
   bool hidden_from_gui;
+  vsx_module_info* module_info;
 
   // cached function to module's constructor/destructor
   vsx_module*(*create_new_module)( unsigned long );

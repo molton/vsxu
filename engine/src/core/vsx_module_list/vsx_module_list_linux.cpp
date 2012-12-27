@@ -1,4 +1,14 @@
+#include <map>
+#include <vector>
+#include <vsx_string.h>
+#include <vsx_param.h>
+#include <vsx_module.h>
+#include <dlfcn.h>
+
+
+#include "vsx_module_list_abs.h"
 #include "vsx_module_list_linux.h"
+#include "vsx_module_dll_info.h"
 
 void vsx_module_list_linux::init(vsx_string args = "")
 {
@@ -179,17 +189,18 @@ void vsx_module_list_linux::init(vsx_string args = "")
       // check to see if this module can run on this system
       bool can_run = module_object->can_run();
 
-      destroy_module( module_object );
+      destroy_module( module_object, module_index_iterator );
 
       if (!can_run) continue; // try to load the next module
 
       module_info->location = "external";
 
       // create module_dll_info template
-      module_dll_info module_dll_info_template;
-      module_dll_info_template.create_new_module = &create_new_module;
-      module_dll_info_template.dstroy_module = &destroy_module;
-      //module_dll_info_template.module_handle = plugin_handle;
+      vsx_module_dll_info module_dll_info_template;
+
+      module_dll_info_template.create_new_module = create_new_module;
+      module_dll_info_template.destroy_module = destroy_module;
+
       module_dll_info_template.module_id = module_index_iterator;
 
       // split the module identifier string into its individual names
@@ -202,14 +213,18 @@ void vsx_module_list_linux::init(vsx_string args = "")
       vsx_string deli = "||";
       vsx_avector<vsx_string> parts;
       explode(module_info->identifier, deli, parts);
-      module_dll_info* applied_dll_info = 0;
+      vsx_module_dll_info* applied_dll_info = 0;
 
       // iterate through the individual names for this module
       for (unsigned long i = 0; i < parts.size(); ++i)
       {
         // create a copy of the template
-        applied_dll_info = new module_dll_info;
+        applied_dll_info = new vsx_module_dll_info;
         *applied_dll_info = module_dll_info_template;
+        vsx_module_info* applied_module_info = new vsx_module_info;
+        *applied_module_info = *module_info;
+        applied_dll_info->module_info = applied_module_info;
+
 
         vsx_string module_identifier;
         if (parts[i][0] == '!')
@@ -223,6 +238,8 @@ void vsx_module_list_linux::init(vsx_string args = "")
           applied_dll_info->hidden_from_gui = false;
           module_identifier = parts[i];
         }
+        // set module info identifier
+        applied_module_info->identifier = module_identifier;
         // add the applied_dll_info to module_dll_list
         module_dll_list[module_identifier] = applied_dll_info;
 
@@ -234,14 +251,58 @@ void vsx_module_list_linux::init(vsx_string args = "")
   } // Iterate through all the filenames, treat them as plugins
 }
 
-std::vector< vsx_module_info* > vsx_module_list_linux::get_module_list( bool include_hidden = false)
+std::vector< vsx_module_info* >* vsx_module_list_linux::get_module_list( bool include_hidden = false)
 {
-
+  std::vector< vsx_module_info* >* result = new std::vector< vsx_module_info* >;
+  for (std::map< vsx_string, void* >::const_iterator it = module_dll_list.begin(); it != module_dll_list.end(); it++)
+  {
+    vsx_module_dll_info* dll_info = (vsx_module_dll_info*)((*it).second);
+    if
+    (
+        include_hidden && dll_info->hidden_from_gui
+        ||
+        !dll_info->hidden_from_gui
+    )
+    {
+      printf("module_ident: %s\n", dll_info->module_info->identifier.c_str() );
+      result->push_back( dll_info->module_info );
+    }
+  }
+  return result;
 }
 
-void* vsx_module_list_linux::load_module_by_name(vsx_string name)
+vsx_module* vsx_module_list_linux::load_module_by_name(vsx_string name)
 {
+  printf("KOSSAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+  if ( module_dll_list.find(name) == module_dll_list.end() )
+  {
+    return 0x0;
+  }
 
+  // call constrcuction factory
+  vsx_module* module =
+    ((vsx_module_dll_info*)module_dll_list[ name ])
+    ->
+    create_new_module
+    (
+      ((vsx_module_dll_info*)module_dll_list[ name ])->module_id
+    )
+  ;
+  module->module_id = ((vsx_module_dll_info*)module_dll_list[ name ])->module_id;
+  module->module_identifier = ((vsx_module_dll_info*)module_dll_list[ name ])->module_info->identifier;
+  return module;
+}
+
+void vsx_module_list_linux::unload_module( vsx_module* module_pointer )
+{
+  // call destrcuction factory
+  ((vsx_module_dll_info*)module_dll_list[ module_pointer->module_identifier ])
+  ->
+  destroy_module
+  (
+    module_pointer,
+    module_pointer->module_id
+  );
 }
 
 bool vsx_module_list_linux::find( const vsx_string &module_name_to_look_for)

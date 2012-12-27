@@ -11,33 +11,33 @@
 #ifndef VSX_NO_CLIENT
     if (cmd == "get_module_list")
     {
-      std::vector< vsx_module_info* > my_module_list = module_list->get_module_list();
+      std::vector< vsx_module_info* >* my_module_list = module_list->get_module_list();
 
       for
       (
         size_t i = 0;
-        i < my_module_list.size();
+        i < my_module_list->size();
         i++
       )
       {
         if
         (
-            my_module_list[i]->identifier != "outputs;screen"
+            (*my_module_list)[i]->identifier != "outputs;screen"
         )
         {
           cmd_out->add_raw(
                 vsx_string("module_list ")
                 +
-                my_module_list[i]->component_class
+                (*my_module_list)[i]->component_class
                 +
                 " "
                 +
-                my_module_list[i]->identifier
+                (*my_module_list)[i]->identifier
                 +
                 " "
                 +
                 base64_encode(
-                  my_module_list[i]->description
+                  (*my_module_list)[i]->description
                   +
                   " "
                 )
@@ -45,6 +45,7 @@
         }
       }
       cmd_out->add_raw("module_list_end");
+      delete my_module_list;
     }
     else
     if (cmd == "get_list") {

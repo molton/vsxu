@@ -255,6 +255,13 @@ public:
 
 class vsx_module {
 public:
+  //-----internal:
+    int module_id; // module id, used when destroying a module. Managed by engine. Should be treated as read-only!
+    vsx_string module_identifier; // when created, holds module identifier. Managed by engine. Should be treated as read-only!
+  //-
+
+
+
   // this property will be set by the engine, it allows access to certain parts of the engine for the modules.
   vsx_module_engine_info* engine;
 

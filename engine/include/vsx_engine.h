@@ -48,7 +48,7 @@
 #include "vsx_param_sequence.h"
 #include "vsx_param_sequence_list.h"
 #include "vsx_sequence_pool.h"
-#include "vsx_module_list/vsx_module_list_abs.h"
+#include "vsx_module_list_abs.h"
 
 class vsx_timer;
 //class module_dll_info;
@@ -71,6 +71,7 @@ private:
   std::map<vsx_string,vsx_note> note_map;
   std::map<vsx_string,vsx_note>::iterator note_iter;
   //-- engine state
+  bool valid; // if engine has managed to start, can run at all
   bool first_start;
   bool stopped;
 
@@ -123,7 +124,6 @@ private:
   vsx_command_list commands_out_cache;
   // auto-increment variable to give components unique names in the event that the user doesn't care
   int component_name_autoinc;
-  void set_default_values();
   int i_load_state(vsx_command_list& load1, vsx_string *error_string, vsx_string info_filename = "[undefined]");
   void i_clear(vsx_command_list *cmd_out = 0, bool clear_critical = false);
   void rename_component();

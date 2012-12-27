@@ -35,7 +35,8 @@
 #include "vsxfst.h"
 #include "vsx_font.h"
 #include <vsx_version.h>
-#include "vsx_engine.h"
+#include <vsx_engine.h>
+#include <vsx_module_list_factory.h>
 
 #include "log/vsx_log_a.h"
 
@@ -64,6 +65,7 @@
 
 // global vars
 vsx_string fpsstring = "VSX Ultra "+vsx_string(vsxu_version)+" - 2012 Vovoid";
+vsx_module_list_abs* vxe_module_list;
 vsx_engine* vxe = 0;
 
 // from the perspective (both for gui/server) from here towards the tcp thread
@@ -406,6 +408,8 @@ void app_init(int id) {
   //printf("argc: %d %s\n",app_argc,own_path.c_str());
   //---------------------------------------------------------------------------
   vxe = new vsx_engine(own_path);
+  vxe_module_list = vsx_module_list_factory_create();
+  vxe->set_module_list(vxe_module_list);
 
 
   gui_prod_fullwindow = &prod_fullwindow;

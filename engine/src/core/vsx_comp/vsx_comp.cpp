@@ -96,7 +96,13 @@ void vsx_comp::load_module(const vsx_string& module_name)
       module = factory_create(module_dll->module_id);
       LOG("load_module 2")
   #endif*/
-  init_module();
+  if (module)
+  {
+    init_module();
+  } else
+  {
+    printf("vsx_comp::load_module failed\n");
+  }
   /*
 LOG("load_module finished")
 */
@@ -111,7 +117,7 @@ void vsx_comp::unload_module() {
     module->on_delete();
   }
   vsx_module_list_abs* module_list = ((vsx_engine*)engine_owner)->get_module_list();
-  module = module_list->unload_module( module );
+  module_list->unload_module( module );
 
   /*
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS

@@ -47,33 +47,42 @@
 vsx_module_engine_info vsx_engine::engine_info;
 #endif
 
-//int vsx_engine::engine_counter = 0;
 using namespace std;
 
 vsx_engine::vsx_engine() {
-  set_default_values();
-  /*#ifdef VSXU_DEBUG
-  engine_id = engine_counter++;
-  printf("constructing engine with id: %d\n", engine_id);
-  #endif*/
+  module_list = 0x0;
+  valid = false;
+  no_client_time = false;
+  g_timer_amp = 1.0f;
+  engine_info.amp = 1.0f;
+  engine_info.vtime = 0;
+  engine_info.dtime = 0;
+  engine_info.real_vtime = 0;
+  engine_info.real_dtime = 0;
+  engine_info.filesystem = &filesystem;
+  engine_info.request_play = 0;
+  engine_info.request_stop = 0;
+  engine_info.request_rewind = 0;
+  engine_info.request_set_time = -0.01f;
+  dump_modules_to_disk = true;
+  vsxl = 0;
+  lastsent = 0;
+  sequence_pool.set_engine((void*)this);
+  last_e_state = e_state = VSX_ENGINE_STOPPED;
+  // on unix/linux, resources are now stored in ~/.vsxu/data/resources
+  filesystem.set_base_path(vsx_get_data_path());
+  frame_cfp_time = 0.0f;
 }
 
 vsx_engine::vsx_engine(vsx_string path)
 {
-  /*#ifdef VSXU_DEBUG
-  engine_id = engine_counter++;
-  printf("constructing engine with id: %d\n", engine_id);
-  #endif*/
-  set_default_values();
+  vsx_engine::vsx_engine();
   log_dir = vsxu_base_path = path;
 }
 
 
 vsx_engine::~vsx_engine()
 {
-  /*#ifdef VSXU_DEBUG
-  printf("destructing engine with id: %d\n", engine_id);
-  #endif*/
   stop();
   commands_internal.clear(true);
   commands_res_internal.clear(true);
@@ -115,31 +124,8 @@ void vsx_engine::destroy() {
 }
 */
 
-void vsx_engine::set_default_values()
+void vsx_engine::init(vsx_string sound_type)
 {
-  no_client_time = false;
-  g_timer_amp = 1.0f;
-  engine_info.amp = 1.0f;
-  engine_info.vtime = 0;
-  engine_info.dtime = 0;
-  engine_info.real_vtime = 0;
-  engine_info.real_dtime = 0;
-  engine_info.filesystem = &filesystem;
-  engine_info.request_play = 0;
-  engine_info.request_stop = 0;
-  engine_info.request_rewind = 0;
-  engine_info.request_set_time = -0.01f;
-  dump_modules_to_disk = true;
-  vsxl = 0;
-  lastsent = 0;
-  sequence_pool.set_engine((void*)this);
-  last_e_state = e_state = VSX_ENGINE_STOPPED;
-  // on unix/linux, resources are now stored in ~/.vsxu/data/resources
-  filesystem.set_base_path(vsx_get_data_path());
-  frame_cfp_time = 0.0f;
-}
-
-void vsx_engine::init(vsx_string sound_type) {
   last_m_time_synch = 0;
   // video stuff
   first_start = true;
@@ -154,6 +140,7 @@ void vsx_engine::init(vsx_string sound_type) {
 
 vsx_module_param_abs* vsx_engine::get_in_param_by_name(vsx_string module_name, vsx_string param_name)
 {
+  if (!valid) return;
   vsx_comp* c = get_by_name(module_name);
   if (c) {
     vsx_engine_param* p = c->get_params_in()->get_by_name(param_name);
@@ -164,11 +151,13 @@ vsx_module_param_abs* vsx_engine::get_in_param_by_name(vsx_string module_name, v
 
 void vsx_engine::reset_input_events()
 {
+  if (!valid) return;
   engine_info.num_input_events = 0;
 }
 
 void vsx_engine::input_event(vsx_engine_input_event &new_input_event)
 {
+  if (!valid) return;
   if (engine_info.num_input_events < VSX_ENGINE_INPUT_EVENT_BUFSIZE)
   {
     engine_info.input_events[engine_info.num_input_events] = new_input_event;
@@ -178,6 +167,7 @@ void vsx_engine::input_event(vsx_engine_input_event &new_input_event)
 
 int vsx_engine::i_load_state(vsx_command_list& load1,vsx_string *error_string, vsx_string info_filename)
 {
+  if (!valid) return;
   LOG("i_load_state 1")
   vsx_command_list load2,loadr2;
   load1.reset();
@@ -245,7 +235,9 @@ int vsx_engine::i_load_state(vsx_command_list& load1,vsx_string *error_string, v
   return 0;
 }
 
-int vsx_engine::load_state(vsx_string filename, vsx_string *error_string) {
+int vsx_engine::load_state(vsx_string filename, vsx_string *error_string)
+{
+  if (!valid) return;
   LOG("load_state 1")
   filesystem.set_base_path("");
   if (filesystem.is_archive())
@@ -293,6 +285,7 @@ int vsx_engine::load_state(vsx_string filename, vsx_string *error_string) {
 
 vsx_comp* vsx_engine::add(vsx_string label)
 {
+  if (!valid) return;
   if (!forge_map[label])
   {
     vsx_comp* comp = new vsx_comp;
@@ -322,6 +315,7 @@ vsx_comp* vsx_engine::add(vsx_string label)
 // send our current time to the client
 void vsx_engine::tell_client_time(vsx_command_list *cmd_out)
 {
+  if (!valid) return;
   if (no_client_time) return;
   #ifndef VSX_NO_CLIENT
     bool send = false;
@@ -342,6 +336,7 @@ void vsx_engine::tell_client_time(vsx_command_list *cmd_out)
 // set engine speed
 void vsx_engine::set_speed(float spd)
 {
+  if (!valid) return;
   #ifndef VSX_DEMO_MINI
     g_timer_amp = spd;
   #endif
@@ -350,12 +345,14 @@ void vsx_engine::set_speed(float spd)
 // set internal float parameter
 void vsx_engine::set_float_array_param(int id, vsx_engine_float_array* float_array)
 {
+  if (!valid) return;
   engine_info.param_float_arrays[id] = float_array;
 }
 
 // set FX level amplification (sound, etc)
 void vsx_engine::set_amp(float amp)
 {
+  if (!valid) return;
   #ifndef VSX_DEMO_MINI
     engine_info.amp = amp;
   #endif
@@ -364,6 +361,9 @@ void vsx_engine::set_amp(float amp)
 // start the engine and sending all the modules the start signal
 bool vsx_engine::start()
 {
+  // a few assertions
+  if (0x0 == module_list) return false;
+
   if (!stopped) return false;
   if (stopped) stopped = false;
   if (first_start)
@@ -388,6 +388,8 @@ bool vsx_engine::start()
     forge_map["screen0"] = comp;
     // add to outputs
     outputs.push_back(comp);
+    // set validity
+    valid = true;
   }
   for (std::vector<vsx_comp*>::iterator it = forge.begin(); it != forge.end(); ++it) {
     (*it)->start();
@@ -398,7 +400,9 @@ bool vsx_engine::start()
   return true;
 }
 // stop the engine
-bool vsx_engine::stop() {
+bool vsx_engine::stop()
+{
+  if (!valid) return;
   #ifndef VSX_DEMO_MINI
     if (!stopped)
     {
@@ -639,12 +643,15 @@ void vsx_engine::set_constant_frame_progression(float new_frame_cfp_time)
 
 void vsx_engine::play()
 {
+  if (!valid) return;
   e_state = VSX_ENGINE_PLAYING;
   g_timer.start();
 }
 
 //############## R E N D E R #######################################################################
-bool vsx_engine::render() {
+bool vsx_engine::render()
+{
+  if (!valid) return;
    // check for time control requests from the modules
   if (engine_info.request_play == 1 && e_state != VSX_ENGINE_LOADING) {
     e_state = VSX_ENGINE_PLAYING;
@@ -982,7 +989,9 @@ void vsx_engine::set_ignore_per_frame_time_limit(bool new_value)
 }
 
 //############## M E S S A G E   P R O C E S S O R #################################################
-void vsx_engine::process_message_queue(vsx_command_list *cmd_in, vsx_command_list *cmd_out_res, bool exclusive, bool ignore_timing) {
+void vsx_engine::process_message_queue(vsx_command_list *cmd_in, vsx_command_list *cmd_out_res, bool exclusive, bool ignore_timing)
+{
+  if (!valid) return;
   // service commands
   LOG("process_message_queue 1")
 
