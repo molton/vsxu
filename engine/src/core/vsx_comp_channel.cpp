@@ -2,7 +2,6 @@
 #include "vsx_command.h"
 #include "vsx_math_3d.h"
 #include "vsx_param.h"
-#include "vsx_module_dll_info.h"
 #include "vsx_module.h"
 #include "vsx_timer.h"
 #include "vsx_comp_channel.h"

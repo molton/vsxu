@@ -1,7 +1,7 @@
 /**
 * Project: VSXu: Realtime visual programming language, music/audio visualizer, animation tool and much much more.
 *
-* @author Jonatan Wallmander, Robert Wenzel, Vovoid Media Technologies Copyright (C) 2003-2011
+* @author Jonatan Wallmander, Vovoid Media Technologies AB Copyright (C) 2012
 * @see The GNU Public License (GPL)
 *
 * This program is free software; you can redistribute it and/or modify
@@ -21,26 +21,26 @@
 
 #ifndef VSX_MODULE_DLL_INFO_H_
 #define VSX_MODULE_DLL_INFO_H_
+
 #include <vsx_platform.h>
 
-
-//-----internal:
-//#ifdef VSXU_EXE
-class module_dll_info {
+class vsx_module_dll_info {
 public:
-#if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
+/*#if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
 	// dll handle
-  HMODULE module_handle;
+  HMODULE dynamic_object_handle;
 #endif
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
 	// for linux / apple: pointer to dlopen handle
 	// for mobile devices: pointer to a vsx_string by which to create the module
-	void* module_handle;
-#endif
+  void* dynamic_object_handle;
+#endif*/
   int module_id;
   bool hidden_from_gui;
-};  
-//-
-//#endif
+
+  // cached function to module's constructor/destructor
+  vsx_module*(*create_new_module)( unsigned long );
+  void(*destroy_module)( vsx_module*, unsigned long );
+};
 
 #endif /*VSX_MODULE_DLL_INFO_H_*/

@@ -48,9 +48,10 @@
 #include "vsx_param_sequence.h"
 #include "vsx_param_sequence_list.h"
 #include "vsx_sequence_pool.h"
+#include "vsx_module_list/vsx_module_list_abs.h"
 
 class vsx_timer;
-class module_dll_info;
+//class module_dll_info;
 class vsx_note;
 class vsx_comp;
 class vsxl_engine;
@@ -73,21 +74,24 @@ private:
   bool first_start;
   bool stopped;
 
+  //-- module list
+  vsx_module_list_abs* module_list;
+
   //-- open dll/so's
-  #if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
+  /*#if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
     std::vector<HMODULE> module_handles;
   #endif
   #if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
     std::vector<void*> module_handles;
-  #endif
+  #endif*/
 
   //-- available modules
-  std::vector<vsx_module_info*> module_infos;
+/*  std::vector<vsx_module_info*> module_infos;
   std::map<vsx_string,vsx_module_info*> module_list;
   std::map<vsx_string,vsx_module_info*>::const_iterator module_iter;
   std::map<vsx_string,module_dll_info*> module_dll_list;
   void build_module_list(vsx_string sound_type = ""); // (re)builds the module_list
-
+*/
   vsx_avector<vsx_comp*> outputs;
 
   // Time/sequencing variables
@@ -143,8 +147,20 @@ private:
   // called each frame after engine has rendered
   void reset_input_events();
 
-
 public:
+
+  // module list access
+  vsx_module_list_abs* get_module_list()
+  {
+    return module_list;
+  }
+
+  void set_module_list( vsx_module_list_abs* new_module_list )
+  {
+    module_list = new_module_list;
+  }
+
+
   // scripting interface
   #ifdef VSX_ENG_DLL
     vsxl_engine* vsxl;
@@ -186,7 +202,6 @@ public:
 #endif
 
   vsx_comp* add(vsx_string label);
-  //void add(vsx_string label, bool auto_naming);
 
   vsx_string meta_information;
   vsx_avector<vsx_string> meta_fields; // split meta information
@@ -233,8 +248,7 @@ public:
   // clears out the current state
   void unload_state();
 
-  void destroy();
-
+  //void destroy();
 
   vsx_engine();
   vsx_engine(vsx_string path);

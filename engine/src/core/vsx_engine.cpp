@@ -15,9 +15,8 @@
 #include "vsx_log.h"
 #include "vsx_engine.h"
 #include "vsx_master_sequencer/vsx_master_sequence_channel.h"
-#include "vsx_module_dll_info.h"
+//#include "vsx_module_dll_info.h"
 #include "vsx_note.h"
-
 
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
 #include <stdio.h>
@@ -80,9 +79,9 @@ vsx_engine::~vsx_engine()
   commands_res_internal.clear(true);
   commands_out_cache.clear(true);
   i_clear(0,true);
-  destroy();
 }
 
+/*
 // free all our file / dynamic library handles
 void vsx_engine::destroy() {
   #ifdef VSXU_DEBUG
@@ -114,7 +113,7 @@ void vsx_engine::destroy() {
     delete module_infos[i];
   }
 }
-
+*/
 
 void vsx_engine::set_default_values()
 {
@@ -151,7 +150,6 @@ void vsx_engine::init(vsx_string sound_type) {
   frame_dfps = 0;
   frame_d = 50;
   component_name_autoinc = 0;
-  build_module_list(sound_type);
 }
 
 vsx_module_param_abs* vsx_engine::get_in_param_by_name(vsx_string module_name, vsx_string param_name)
@@ -191,7 +189,11 @@ int vsx_engine::i_load_state(vsx_command_list& load1,vsx_string *error_string, v
   {
     if (mc->cmd == "component_create")
     {
-      if (!(module_list.find(mc->parts[1]) != module_list.end()))
+      // verify that the module is present and can be loaded
+      if
+      (
+          !module_list->find( mc->parts[1] )
+      )
       {
         failed_component = mc->parts[2];
         //components_existing = false;
@@ -368,24 +370,24 @@ bool vsx_engine::start()
   {
     sequence_list.set_engine(this);
     first_start = false;
+
+    log("trying to add screen",0);
+
+    // create a new component for the screen
     vsx_comp* comp = new vsx_comp;
     comp->internal_critical = true;
     comp->engine_owner = (void*)this;
-    if (module_list.find("outputs;screen") == module_list.end())
-    {
-      log("panic! can not create screen! are the plugins/modules compiled?\n",0);
-      exit(0);
-    }
-    forge.push_back(comp);
-    forge_map["screen0"] = comp;
-    outputs.push_back(comp);
-    log("adding screen",0);
     comp->identifier = "outputs;screen";
-    comp->load_module(module_dll_list[module_list["outputs;screen"]->identifier]);
-    //comp->load_module(module_dll_list[module_list[comp->identifier]->identifier]);
+    comp->load_module("outputs;screen");
     comp->component_class += ":critical";
     comp->name="screen0";
     comp->engine_info(&engine_info);
+
+    // add this to our forge and forge_map
+    forge.push_back(comp);
+    forge_map["screen0"] = comp;
+    // add to outputs
+    outputs.push_back(comp);
   }
   for (std::vector<vsx_comp*>::iterator it = forge.begin(); it != forge.end(); ++it) {
     (*it)->start();
@@ -410,6 +412,7 @@ bool vsx_engine::stop() {
   #endif
 }
 
+/*
 void vsx_engine::build_module_list(vsx_string sound_type) {
   if (module_list.size()) return;
   unsigned long total_num_modules = 0;
@@ -627,7 +630,7 @@ void vsx_engine::build_module_list(vsx_string sound_type) {
     #endif
   #endif
 }
-
+*/
 
 void vsx_engine::set_constant_frame_progression(float new_frame_cfp_time)
 {
@@ -1166,11 +1169,10 @@ void vsx_engine::i_clear(vsx_command_list *cmd_out,bool clear_critical) {
     LOG("delete step 4\n");
       LOG("del "+(*fit).second->name);
       if ((*fit).second->component_class != "macro")
-      if (module_list.find((*fit).second->identifier) != module_list.end())
-      if (module_list[(*fit).second->identifier]->location == "external")
+      if ( module_list->find((*fit).second->identifier) )
       {
         LOG("unloading "+(*fit).second->name);
-        (*fit).second->unload_module(module_dll_list[(*fit).second->identifier]);
+        (*fit).second->unload_module();
       }
       delete ((*fit).second);
       LOG("done deleting"´)

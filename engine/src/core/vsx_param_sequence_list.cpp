@@ -1,6 +1,5 @@
 #include "vsxfst.h"
 #include "vsx_param.h"
-#include "vsx_module_dll_info.h"
 #include "vsx_module.h"
 #include "vsx_timer.h"
 #include <list>

@@ -1,7 +1,6 @@
 #ifndef VSX_NO_CLIENT
 #include <list>
 #include "vsx_param.h"
-#include "vsx_module_dll_info.h"
 #include "vsx_module.h"
 #include "vsx_command.h"
 #include "vsx_param_interpolation.h"

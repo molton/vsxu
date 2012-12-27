@@ -3,13 +3,10 @@
         // syntax:
         //  component_create math_logic;oscillator_dlux macro1.my_oscillator 0.013 0.204
         if (!get_by_name(c->parts[2])) {
-          if (module_list.find(c->parts[1]) != module_list.end()) {
+          if (module_list->find(c->parts[1])) {
           	LOG("create 1")
             vsx_comp* comp = add(c->parts[2]);
-            if (module_list[c->parts[1]]->location == "external") {
-              comp->load_module(module_dll_list[c->parts[1]]);
-            } //else
-            //comp->load_module(module_list[c->parts[1]]->location,c->parts[1]);
+            comp->load_module(c->parts[1]);
             comp->identifier = c->parts[1];
          		if (comp->module_info->output) {
         		  //printf("outputs d00d\n");
@@ -121,15 +118,15 @@
                 if (comp->module_info->output) {
                   fdrun = true;
                   outputs.remove(comp);
-
                 }
+                // unload the module
                 if (!macro)
-                if (module_list[comp->identifier]->location == "external") {
-                  comp->unload_module(module_dll_list[comp->identifier]);
+                {
+                  comp->unload_module();
                 }
 
             		to_delete.push_back(comp);
-//                printf("delete step 7\n");
+                //printf("delete step 7\n");
               } else drun = false;
             } else drun = false;
           }

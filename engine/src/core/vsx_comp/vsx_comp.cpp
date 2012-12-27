@@ -4,7 +4,6 @@
 #include "vsx_string.h"
 #include "vsx_command.h"
 #include "vsx_timer.h"
-#include "vsx_module_dll_info.h"
 #include "vsx_engine.h"
 #include "vsx_comp_channel.h"
 #include "vsx_param_abstraction.h"
@@ -49,7 +48,6 @@ vsx_comp::vsx_comp() {
   //local_engine_info.real_vtime = 0;
   in_module_parameters = new vsx_module_param_list;
   out_module_parameters = new vsx_module_param_list;
-
 }
 
 vsx_comp::~vsx_comp() {
@@ -75,8 +73,12 @@ vsx_comp::~vsx_comp() {
   #endif
 }
 
-void vsx_comp::load_module(module_dll_info* module_dll) {
-  #ifdef VSXU_MODULES_STATIC
+void vsx_comp::load_module(const vsx_string& module_name)
+{
+  vsx_module_list_abs* module_list = ((vsx_engine*)engine_owner)->get_module_list();
+  module = module_list->load_module_by_name( module_name );
+
+  /*#ifdef VSXU_MODULES_STATIC
     #ifdef VSXU_MAC_XCODE
       syslog(LOG_ERR,"vsx_comp::load_module %s\n",(char*)(module_dll->module_handle));
     #else
@@ -93,12 +95,14 @@ void vsx_comp::load_module(module_dll_info* module_dll) {
       LOG("load_module 1")
       module = factory_create(module_dll->module_id);
       LOG("load_module 2")
-  #endif
+  #endif*/
   init_module();
-  LOG("load_module finished")
+  /*
+LOG("load_module finished")
+*/
 }
 
-void vsx_comp::unload_module(module_dll_info* module_dll) {
+void vsx_comp::unload_module() {
   LOG("before unload1")
 #ifdef VSXU_DEBUG
   printf("unloading %s\n",name.c_str());
@@ -106,7 +110,11 @@ void vsx_comp::unload_module(module_dll_info* module_dll) {
   if (module) {
     module->on_delete();
   }
-  #if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
+  vsx_module_list_abs* module_list = ((vsx_engine*)engine_owner)->get_module_list();
+  module = module_list->unload_module( module );
+
+  /*
+#if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
     if (GetProcAddress(module_dll->module_handle, "destroy_module") == 0) {
       LOG("unload module ERROR! couldn't find handle for destroy_module!")
       return;
@@ -122,7 +130,8 @@ void vsx_comp::unload_module(module_dll_info* module_dll) {
     void(*unload)(vsx_module*,unsigned long) = (void(*)(vsx_module*,unsigned long))dlsym(module_dll->module_handle, "destroy_module");
   #endif
   LOG("before unload2")
-  unload(module,module_dll->module_id);
+  unload(module,module_dll->module_id);*/
+
   module = 0;
 }
 
