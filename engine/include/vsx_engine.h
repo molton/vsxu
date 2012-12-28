@@ -157,13 +157,6 @@ public:
   #endif
 
 
-  //debug refcounter
-/*  #ifdef VSXU_DEBUG
-    static int engine_counter;
-    int engine_id;
-  #endif*/
-  //--
-
   bool dump_modules_to_disk;
   bool no_client_time;
   vsx_command_list commands_internal;
@@ -229,14 +222,10 @@ public:
   // 1 = reserved for frequency data
   void set_float_array_param(int id, vsx_engine_float_array* float_array);
 
-  // run once the gfx engine is initialized
-  void init(vsx_string sound_type = "");
   // loads a new state (clearing out the previous one)
   int load_state(vsx_string filename, vsx_string *error_string = 0);
   // clears out the current state
   void unload_state();
-
-  //void destroy();
 
   vsx_engine();
   vsx_engine(vsx_string path);

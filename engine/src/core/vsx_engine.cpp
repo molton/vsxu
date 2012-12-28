@@ -73,6 +73,16 @@ void vsx_engine::constructor_set_default_values()
   // on unix/linux, resources are now stored in ~/.vsxu/data/resources
   filesystem.set_base_path(vsx_get_data_path());
   frame_cfp_time = 0.0f;
+  last_m_time_synch = 0;
+  // video stuff
+  first_start = true;
+  stopped = true;
+  frame_dcount = 0;
+  frame_dtime = 0;
+  frame_dprev = -1;
+  frame_dfps = 0;
+  frame_d = 50;
+  component_name_autoinc = 0;
 }
 
 vsx_engine::vsx_engine()
@@ -94,20 +104,6 @@ vsx_engine::~vsx_engine()
   commands_res_internal.clear(true);
   commands_out_cache.clear(true);
   i_clear(0,true);
-}
-
-void vsx_engine::init(vsx_string sound_type)
-{
-  last_m_time_synch = 0;
-  // video stuff
-  first_start = true;
-  stopped = true;
-  frame_dcount = 0;
-  frame_dtime = 0;
-  frame_dprev = -1;
-  frame_dfps = 0;
-  frame_d = 50;
-  component_name_autoinc = 0;
 }
 
 vsx_module_param_abs* vsx_engine::get_in_param_by_name(vsx_string module_name, vsx_string param_name)

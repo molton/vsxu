@@ -249,7 +249,6 @@ public:
       if (first)
       {
         if (!dual_monitor) {
-          vxe->init();
           vxe->start();
         }
         load_desktop_a();
@@ -416,7 +415,6 @@ void app_init(int id) {
   //---------------------------------------------------------------------------
   myf.init(PLATFORM_SHARED_FILES+"font/font-ascii_output.png");
   if (dual_monitor) {
-    vxe->init();
     vxe->start();
   }
 
