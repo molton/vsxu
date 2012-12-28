@@ -264,7 +264,7 @@ std::vector< vsx_module_info* >* vsx_module_list_linux::get_module_list( bool in
         !dll_info->hidden_from_gui
     )
     {
-      printf("module_ident: %s\n", dll_info->module_info->identifier.c_str() );
+      //printf("module_ident: %s\n", dll_info->module_info->identifier.c_str() );
       result->push_back( dll_info->module_info );
     }
   }

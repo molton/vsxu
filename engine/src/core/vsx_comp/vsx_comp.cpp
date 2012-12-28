@@ -352,10 +352,8 @@ bool vsx_comp::engine_info(vsx_module_engine_info* engine) {
   if (module) {
     r_engine_info = engine;
     module->engine = engine;
-
     return true;
   }
-  printf("KOSSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA comp not\n");
   return false;
 }
 
