@@ -72,7 +72,7 @@ void vsx_module_list::init(vsx_string args = "")
     }
 
     // add this module handle to our list of module handles
-    module_handles.push_back(plugin_handle);
+    plugin_handles.push_back(plugin_handle);
 
     //-------------------------------------------------------------------------
     // look for the REQUIRED constructor (factory) method
@@ -271,6 +271,14 @@ std::vector< vsx_module_info* >* vsx_module_list::get_module_list( bool include_
   return result;
 }
 
+void vsx_module_list::destroy()
+{
+  for (size_t i = 0; i < module_handles.size(); i++)
+  {
+    vsx_dlopen::close( plugin_handles[i] );
+  }
+}
+
 vsx_module* vsx_module_list::load_module_by_name(vsx_string name)
 {
   if ( module_plugin_list.find(name) == module_plugin_list.end() )
@@ -313,25 +321,3 @@ bool vsx_module_list::find( const vsx_string &module_name_to_look_for)
   return true;
 }
 
-
-
-/* destroy
-  #ifdef VSXU_DEBUG
-    printf("engine destroy\n");
-  #endif
-  // unload module handles
-  for (size_t i = 0; i < module_handles.size(); i++)
-  {
-    #ifdef _WIN32
-      FreeLibrary(module_handles[i]);
-    #endif
-    #if defined(___) || defined(__APPLE__)
-      //void* oulp = (void*)sym(module_handles[i], "on_unload_library");
-      if (sym(module_handles[i], "on_unload_library"))
-      {
-        void(*on_unload_library)(void) = (void(*)(void))sym(module_handles[i], "on_unload_library");
-        on_unload_library();
-      }
-      dlclose(module_handles[i]);
-    #endif
-  }*/

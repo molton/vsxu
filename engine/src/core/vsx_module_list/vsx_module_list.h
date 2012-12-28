@@ -9,9 +9,10 @@
 class vsx_module_list : public vsx_module_list_abs
 {
 private:
-  std::vector<void*> module_handles;
+  std::vector< vsx_dynamic_object_handle > plugin_handles;
 public:
   void init(vsx_string args = "");
+  void destroy();
   std::vector< vsx_module_info* >* get_module_list( bool include_hidden = false);
   vsx_module* load_module_by_name(vsx_string name);
   void unload_module( vsx_module* module_pointer );

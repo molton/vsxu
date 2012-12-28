@@ -38,6 +38,8 @@ public:
   //     build_module_list("sound.recording.type=fmod;opengl.vsync=1;");
   virtual void init(vsx_string args = "") = 0;
 
+  virtual void destroy() = 0;
+
   // Return a list of the modules
   // Note that you must destroy the return value.
   virtual std::vector< vsx_module_info* >* get_module_list( bool include_hidden = false) = 0;

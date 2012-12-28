@@ -11,7 +11,7 @@ vsx_module_list_abs* vsx_module_list_factory_create()
 {
     vsx_module_list* module_list = new vsx_module_list();
     module_list->init();
-    return module_list;
+    return (vsx_module_list_abs*)module_list;
 }
 
 void vsx_module_list_factory_destroy( vsx_module_list_abs* object )
