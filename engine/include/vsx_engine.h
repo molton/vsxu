@@ -59,6 +59,9 @@ class vsxl_engine;
 //////////////////////////////////////////////////////////////////////
 class DLLIMPORT vsx_engine {
 private:
+  void constructor_set_default_values();
+
+
   vsx_string vsxu_base_path;
   vsxf filesystem; // our master filesystem handler
   vsx_engine_environment engine_environment;
@@ -67,6 +70,8 @@ private:
   std::map<vsx_string,vsx_comp*> forge_map;
   std::map<vsx_string,vsx_comp*>::const_iterator forge_map_iter;
   std::map<vsx_string,vsx_comp*>::reverse_iterator forge_map_riter;
+  //-- outputs
+  vsx_avector<vsx_comp*> outputs;
   //-- notes
   std::map<vsx_string,vsx_note> note_map;
   std::map<vsx_string,vsx_note>::iterator note_iter;
@@ -77,23 +82,6 @@ private:
 
   //-- module list
   vsx_module_list_abs* module_list;
-
-  //-- open dll/so's
-  /*#if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
-    std::vector<HMODULE> module_handles;
-  #endif
-  #if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
-    std::vector<void*> module_handles;
-  #endif*/
-
-  //-- available modules
-/*  std::vector<vsx_module_info*> module_infos;
-  std::map<vsx_string,vsx_module_info*> module_list;
-  std::map<vsx_string,vsx_module_info*>::const_iterator module_iter;
-  std::map<vsx_string,module_dll_info*> module_dll_list;
-  void build_module_list(vsx_string sound_type = ""); // (re)builds the module_list
-*/
-  vsx_avector<vsx_comp*> outputs;
 
   // Time/sequencing variables
   // global frame counter (mostly for fun)

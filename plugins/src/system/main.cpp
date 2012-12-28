@@ -421,6 +421,7 @@ void declare_params(vsx_module_param_list& in_parameters, vsx_module_param_list&
 }
 
 void run() {
+  printf("time run\n");
   time_out->set(engine->vtime);
   dtime_out->set(engine->dtime);
   r_time_out->set(engine->real_vtime);

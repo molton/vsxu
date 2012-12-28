@@ -273,7 +273,6 @@ std::vector< vsx_module_info* >* vsx_module_list_linux::get_module_list( bool in
 
 vsx_module* vsx_module_list_linux::load_module_by_name(vsx_string name)
 {
-  printf("KOSSAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
   if ( module_dll_list.find(name) == module_dll_list.end() )
   {
     return 0x0;

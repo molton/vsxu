@@ -49,7 +49,8 @@ vsx_module_engine_info vsx_engine::engine_info;
 
 using namespace std;
 
-vsx_engine::vsx_engine() {
+void vsx_engine::constructor_set_default_values()
+{
   module_list = 0x0;
   valid = false;
   no_client_time = false;
@@ -74,9 +75,14 @@ vsx_engine::vsx_engine() {
   frame_cfp_time = 0.0f;
 }
 
+vsx_engine::vsx_engine()
+{
+  constructor_set_default_values();
+}
+
 vsx_engine::vsx_engine(vsx_string path)
 {
-  vsx_engine::vsx_engine();
+  constructor_set_default_values();
   log_dir = vsxu_base_path = path;
 }
 
@@ -368,6 +374,7 @@ bool vsx_engine::start()
   if (stopped) stopped = false;
   if (first_start)
   {
+    valid = true;
     sequence_list.set_engine(this);
     first_start = false;
 
@@ -389,7 +396,7 @@ bool vsx_engine::start()
     // add to outputs
     outputs.push_back(comp);
     // set validity
-    valid = true;
+
   }
   for (std::vector<vsx_comp*>::iterator it = forge.begin(); it != forge.end(); ++it) {
     (*it)->start();
