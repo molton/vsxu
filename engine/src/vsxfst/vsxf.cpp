@@ -554,3 +554,9 @@ vsx_string vsx_get_data_path()
   #endif
   return base_path;
 }
+
+
+vsx_string vsx_get_directory_separator()
+{
+  return vsx_string(DIRECTORY_SEPARATOR);
+}

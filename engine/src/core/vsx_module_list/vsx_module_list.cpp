@@ -30,7 +30,7 @@ void vsx_module_list::init(vsx_string args = "")
   (
     vsx_string(CMAKE_INSTALL_PREFIX)
     +
-    "/"
+    vsx_get_directory_separator()
     +
     vsx_string(VSXU_INSTALL_LIB_DIR)
     +
@@ -50,10 +50,10 @@ void vsx_module_list::init(vsx_string args = "")
   for (std::list<vsx_string>::iterator it = mfiles.begin(); it != mfiles.end(); ++it)
   {
     vsx_string dynamic_object_file_name = (*it);
-    vsx_avector<vsx_string> parts;
+    //vsx_avector<vsx_string> parts;
     vsx_dynamic_object_handle plugin_handle;
-    vsx_string deli = "/";
-    explode((*it),deli,parts);
+    //vsx_string deli = vsx_get_directory_separator();
+    //explode((*it),deli,parts);
 
     // load the plugin
     plugin_handle = vsx_dlopen::open(
@@ -273,7 +273,7 @@ std::vector< vsx_module_info* >* vsx_module_list::get_module_list( bool include_
 
 void vsx_module_list::destroy()
 {
-  for (size_t i = 0; i < module_handles.size(); i++)
+  for (size_t i = 0; i < plugin_handles.size(); i++)
   {
     vsx_dlopen::close( plugin_handles[i] );
   }
