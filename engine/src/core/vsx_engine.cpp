@@ -396,9 +396,9 @@ bool vsx_engine::start()
     // add to outputs
     outputs.push_back(comp);
     // set validity
-
   }
-  for (std::vector<vsx_comp*>::iterator it = forge.begin(); it != forge.end(); ++it) {
+  for (std::vector<vsx_comp*>::iterator it = forge.begin(); it != forge.end(); ++it)
+  {
     (*it)->start();
   }
   m_timer.start();
