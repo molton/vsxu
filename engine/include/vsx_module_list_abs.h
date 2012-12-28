@@ -9,8 +9,8 @@ class vsx_module_list_abs
 private:
 protected:
   // holder of dynamically linked object info, by string
-  // the pointer should be typecast to vsx_module_dll_info*
-  std::map< vsx_string, void* > module_dll_list;
+  // the pointer should be typecast to vsx_module_plugin_info*
+  std::map< vsx_string, void* > module_plugin_list;
 
   // module list (master)
   // holds module_infos harvested from the modules

@@ -1,11 +1,12 @@
-#ifndef VSX_MODULE_LIST_LINUX_H
-#define VSX_MODULE_LIST_LINUX_H
+#ifndef VSX_MODULE_LIST_H
+#define VSX_MODULE_LIST_H
 
+#include "vsx_dlopen.h"
 // Implementation of Module List Class for Linux
 
 // See vsx_module_list_abs.h for reference documentation for this class
 
-class vsx_module_list_linux : public vsx_module_list_abs
+class vsx_module_list : public vsx_module_list_abs
 {
 private:
   std::vector<void*> module_handles;

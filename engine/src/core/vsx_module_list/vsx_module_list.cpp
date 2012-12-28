@@ -3,14 +3,15 @@
 #include <vsx_string.h>
 #include <vsx_param.h>
 #include <vsx_module.h>
-#include <dlfcn.h>
 
-
+#include "vsx_dlopen.h"
 #include "vsx_module_list_abs.h"
-#include "vsx_module_list_linux.h"
-#include "vsx_module_dll_info.h"
+#include "vsx_module_list.h"
+#include "vsx_module_plugin_info.h"
 
-void vsx_module_list_linux::init(vsx_string args = "")
+
+
+void vsx_module_list::init(vsx_string args = "")
 {
   // woops, looks like we already built the list
   if (module_list.size()) return;
@@ -50,14 +51,13 @@ void vsx_module_list_linux::init(vsx_string args = "")
   {
     vsx_string dynamic_object_file_name = (*it);
     vsx_avector<vsx_string> parts;
-    void* plugin_handle;
+    vsx_dynamic_object_handle plugin_handle;
     vsx_string deli = "/";
     explode((*it),deli,parts);
 
     // load the plugin
-    plugin_handle = dlopen(
-          dynamic_object_file_name.c_str(),
-          RTLD_NOW
+    plugin_handle = vsx_dlopen::open(
+          dynamic_object_file_name.c_str()
     );
 
     // if loading fails, print debug output
@@ -66,7 +66,7 @@ void vsx_module_list_linux::init(vsx_string args = "")
             "vsx_module_list init: Error: trying to load the plugin \"%s\"\n"
             "                      Cause: dlopen returned error: %s\n",
             dynamic_object_file_name.c_str(),
-            dlerror()
+            vsx_dlopen::error()
       );
       continue; // try to load the next plugin
     }
@@ -76,11 +76,11 @@ void vsx_module_list_linux::init(vsx_string args = "")
 
     //-------------------------------------------------------------------------
     // look for the REQUIRED constructor (factory) method
-    if (dlsym(plugin_handle, "create_module") == 0)
+    if (vsx_dlopen::sym(plugin_handle, "create_module") == 0)
     {
       printf(
             "vsx_module_list init: Error: trying to load the plugin \"%s\"\n"
-            "                      Cause: dlsym could not find \"create_module\"\n",
+            "                      Cause: sym could not find \"create_module\"\n",
             dynamic_object_file_name.c_str()
             );
       continue; // try to load the next plugin
@@ -88,7 +88,7 @@ void vsx_module_list_linux::init(vsx_string args = "")
     // initialize constructor (factory) method
     vsx_module*(*create_new_module)(unsigned long) =
         (vsx_module*(*)(unsigned long))
-        dlsym(
+        vsx_dlopen::sym(
           plugin_handle,
           "create_new_module"
         );
@@ -98,11 +98,11 @@ void vsx_module_list_linux::init(vsx_string args = "")
 
     //-------------------------------------------------------------------------
     // look for the REQUIRED destructor method
-    if (dlsym(plugin_handle, "destroy_module") == 0)
+    if (vsx_dlopen::sym(plugin_handle, "destroy_module") == 0)
     {
       printf(
             "vsx_module_list init: Error: trying to load the plugin \"%s\"\n"
-            "                      Cause: dlsym could not find \"destroy_module\"\n",
+            "                      Cause: sym could not find \"destroy_module\"\n",
             dynamic_object_file_name.c_str()
             );
       continue; // try to load the next plugin
@@ -110,7 +110,7 @@ void vsx_module_list_linux::init(vsx_string args = "")
     // init destructor method
     void(*destroy_module)(vsx_module*,unsigned long) =
         (void(*)(vsx_module*,unsigned long))
-        dlsym(
+        vsx_dlopen::sym(
           plugin_handle,
           "destroy_module"
         );
@@ -120,11 +120,11 @@ void vsx_module_list_linux::init(vsx_string args = "")
 
     //-------------------------------------------------------------------------
     // look for the REQUIRED get_num_modules method
-    if (dlsym(plugin_handle, "get_num_modules") == 0)
+    if (vsx_dlopen::sym(plugin_handle, "get_num_modules") == 0)
     {
       printf(
             "vsx_module_list init: Error: trying to load the plugin \"%s\"\n"
-            "                      Cause: dlsym could not find \"get_num_modules\"\n",
+            "                      Cause: sym could not find \"get_num_modules\"\n",
             dynamic_object_file_name.c_str()
             );
       continue; // try to load the next plugin
@@ -132,7 +132,7 @@ void vsx_module_list_linux::init(vsx_string args = "")
     // init get_num_modules method
     unsigned long(*get_num_modules)(void) =
         (unsigned long(*)(void))
-        dlsym(
+        vsx_dlopen::sym(
           plugin_handle,
           "get_num_modules"
         );
@@ -142,11 +142,11 @@ void vsx_module_list_linux::init(vsx_string args = "")
 
     //-------------------------------------------------------------------------
     // check for and if found, set the optional environment_info support
-    if (dlsym(plugin_handle,"set_environment_info"))
+    if (vsx_dlopen::sym(plugin_handle,"set_environment_info"))
     {
       void(*set_env)(vsx_engine_environment*) =
           (void(*)(vsx_engine_environment*))
-          dlsym(
+          vsx_dlopen::sym(
             plugin_handle,
             "set_environment_info"
           );
@@ -195,13 +195,13 @@ void vsx_module_list_linux::init(vsx_string args = "")
 
       module_info->location = "external";
 
-      // create module_dll_info template
-      vsx_module_dll_info module_dll_info_template;
+      // create module_plugin_info template
+      vsx_module_plugin_info module_plugin_info_template;
 
-      module_dll_info_template.create_new_module = create_new_module;
-      module_dll_info_template.destroy_module = destroy_module;
+      module_plugin_info_template.create_new_module = create_new_module;
+      module_plugin_info_template.destroy_module = destroy_module;
 
-      module_dll_info_template.module_id = module_index_iterator;
+      module_plugin_info_template.module_id = module_index_iterator;
 
       // split the module identifier string into its individual names
       // a module can have multiple names (and locations in the gui tree)
@@ -213,35 +213,35 @@ void vsx_module_list_linux::init(vsx_string args = "")
       vsx_string deli = "||";
       vsx_avector<vsx_string> parts;
       explode(module_info->identifier, deli, parts);
-      vsx_module_dll_info* applied_dll_info = 0;
+      vsx_module_plugin_info* applied_plugin_info = 0;
 
       // iterate through the individual names for this module
       for (unsigned long i = 0; i < parts.size(); ++i)
       {
         // create a copy of the template
-        applied_dll_info = new vsx_module_dll_info;
-        *applied_dll_info = module_dll_info_template;
+        applied_plugin_info = new vsx_module_plugin_info;
+        *applied_plugin_info = module_plugin_info_template;
         vsx_module_info* applied_module_info = new vsx_module_info;
         *applied_module_info = *module_info;
-        applied_dll_info->module_info = applied_module_info;
+        applied_plugin_info->module_info = applied_module_info;
 
 
         vsx_string module_identifier;
         if (parts[i][0] == '!')
         {
           // hidden from gui
-          applied_dll_info->hidden_from_gui = true;
+          applied_plugin_info->hidden_from_gui = true;
           module_identifier = parts[i].substr(1);
         } else
         {
           // normal
-          applied_dll_info->hidden_from_gui = false;
+          applied_plugin_info->hidden_from_gui = false;
           module_identifier = parts[i];
         }
         // set module info identifier
         applied_module_info->identifier = module_identifier;
-        // add the applied_dll_info to module_dll_list
-        module_dll_list[module_identifier] = applied_dll_info;
+        // add the applied_plugin_info to module_plugin_list
+        module_plugin_list[module_identifier] = applied_plugin_info;
 
         // add the module info to the module list
         module_list[module_identifier] = module_info;
@@ -251,51 +251,51 @@ void vsx_module_list_linux::init(vsx_string args = "")
   } // Iterate through all the filenames, treat them as plugins
 }
 
-std::vector< vsx_module_info* >* vsx_module_list_linux::get_module_list( bool include_hidden = false)
+std::vector< vsx_module_info* >* vsx_module_list::get_module_list( bool include_hidden = false)
 {
   std::vector< vsx_module_info* >* result = new std::vector< vsx_module_info* >;
-  for (std::map< vsx_string, void* >::const_iterator it = module_dll_list.begin(); it != module_dll_list.end(); it++)
+  for (std::map< vsx_string, void* >::const_iterator it = module_plugin_list.begin(); it != module_plugin_list.end(); it++)
   {
-    vsx_module_dll_info* dll_info = (vsx_module_dll_info*)((*it).second);
+    vsx_module_plugin_info* plugin_info = (vsx_module_plugin_info*)((*it).second);
     if
     (
-        include_hidden && dll_info->hidden_from_gui
+        include_hidden && plugin_info->hidden_from_gui
         ||
-        !dll_info->hidden_from_gui
+        !plugin_info->hidden_from_gui
     )
     {
-      //printf("module_ident: %s\n", dll_info->module_info->identifier.c_str() );
-      result->push_back( dll_info->module_info );
+      //printf("module_ident: %s\n", plugin_info->module_info->identifier.c_str() );
+      result->push_back( plugin_info->module_info );
     }
   }
   return result;
 }
 
-vsx_module* vsx_module_list_linux::load_module_by_name(vsx_string name)
+vsx_module* vsx_module_list::load_module_by_name(vsx_string name)
 {
-  if ( module_dll_list.find(name) == module_dll_list.end() )
+  if ( module_plugin_list.find(name) == module_plugin_list.end() )
   {
     return 0x0;
   }
 
   // call constrcuction factory
   vsx_module* module =
-    ((vsx_module_dll_info*)module_dll_list[ name ])
+    ((vsx_module_plugin_info*)module_plugin_list[ name ])
     ->
     create_new_module
     (
-      ((vsx_module_dll_info*)module_dll_list[ name ])->module_id
+      ((vsx_module_plugin_info*)module_plugin_list[ name ])->module_id
     )
   ;
-  module->module_id = ((vsx_module_dll_info*)module_dll_list[ name ])->module_id;
-  module->module_identifier = ((vsx_module_dll_info*)module_dll_list[ name ])->module_info->identifier;
+  module->module_id = ((vsx_module_plugin_info*)module_plugin_list[ name ])->module_id;
+  module->module_identifier = ((vsx_module_plugin_info*)module_plugin_list[ name ])->module_info->identifier;
   return module;
 }
 
-void vsx_module_list_linux::unload_module( vsx_module* module_pointer )
+void vsx_module_list::unload_module( vsx_module* module_pointer )
 {
   // call destrcuction factory
-  ((vsx_module_dll_info*)module_dll_list[ module_pointer->module_identifier ])
+  ((vsx_module_plugin_info*)module_plugin_list[ module_pointer->module_identifier ])
   ->
   destroy_module
   (
@@ -304,7 +304,7 @@ void vsx_module_list_linux::unload_module( vsx_module* module_pointer )
   );
 }
 
-bool vsx_module_list_linux::find( const vsx_string &module_name_to_look_for)
+bool vsx_module_list::find( const vsx_string &module_name_to_look_for)
 {
   if (!(module_list.find(module_name_to_look_for) != module_list.end()))
   {
@@ -325,11 +325,11 @@ bool vsx_module_list_linux::find( const vsx_string &module_name_to_look_for)
     #ifdef _WIN32
       FreeLibrary(module_handles[i]);
     #endif
-    #if defined(__linux__) || defined(__APPLE__)
-      //void* oulp = (void*)dlsym(module_handles[i], "on_unload_library");
-      if (dlsym(module_handles[i], "on_unload_library"))
+    #if defined(___) || defined(__APPLE__)
+      //void* oulp = (void*)sym(module_handles[i], "on_unload_library");
+      if (sym(module_handles[i], "on_unload_library"))
       {
-        void(*on_unload_library)(void) = (void(*)(void))dlsym(module_handles[i], "on_unload_library");
+        void(*on_unload_library)(void) = (void(*)(void))sym(module_handles[i], "on_unload_library");
         on_unload_library();
       }
       dlclose(module_handles[i]);

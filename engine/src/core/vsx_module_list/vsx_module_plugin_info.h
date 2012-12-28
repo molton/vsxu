@@ -19,22 +19,13 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#ifndef VSX_MODULE_DLL_INFO_H_
-#define VSX_MODULE_DLL_INFO_H_
+#ifndef VSX_MODULE_PLUGIN_INFO_H_
+#define VSX_MODULE_PLUGIN_INFO_H_
 
 #include <vsx_platform.h>
 
-class vsx_module_dll_info {
-public:
-/*#if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
-	// dll handle
-  HMODULE dynamic_object_handle;
-#endif
-#if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
-	// for linux / apple: pointer to dlopen handle
-	// for mobile devices: pointer to a vsx_string by which to create the module
-  void* dynamic_object_handle;
-#endif*/
+typedef struct {
+  vsx_dynamic_object_handle plugin_handle;
   int module_id;
   bool hidden_from_gui;
   vsx_module_info* module_info;
@@ -42,6 +33,6 @@ public:
   // cached function to module's constructor/destructor
   vsx_module*(*create_new_module)( unsigned long );
   void(*destroy_module)( vsx_module*, unsigned long );
-};
+} vsx_module_plugin_info;
 
-#endif /*VSX_MODULE_DLL_INFO_H_*/
+#endif /*VSX_MODULE_PLUGIN_INFO_H_*/

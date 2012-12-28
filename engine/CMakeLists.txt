@@ -150,9 +150,8 @@ set(SOURCES
   src/core/vsx_param_sequence_list.cpp
   src/core/vsx_module_static.cpp
   src/core/vsx_module_list/vsx_module_list_factory.cpp
-  src/core/vsx_module_list/vsx_module_list_linux.cpp
-  src/core/vsx_module_list/vsx_module_list_win.cpp
-  src/core/vsx_module_list/vsx_module_list_osx.cpp
+  src/core/vsx_module_list/vsx_module_list.cpp
+  src/core/vsx_module_list/vsx_dlopen.cpp
   src/vsx_math_3d.cpp
   src/mtwist.c
   src/vsx_param.cpp
