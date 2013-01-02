@@ -93,7 +93,7 @@ vsx_engine::vsx_engine()
 vsx_engine::vsx_engine(vsx_string path)
 {
   constructor_set_default_values();
-  log_dir = vsxu_base_path = path;
+  log_dir = path;
 }
 
 
@@ -105,6 +105,19 @@ vsx_engine::~vsx_engine()
   commands_out_cache.clear(true);
   i_clear(0,true);
 }
+
+
+vsx_module_list_abs* vsx_engine::get_module_list()
+{
+  return module_list;
+}
+
+void vsx_engine::set_module_list( vsx_module_list_abs* new_module_list )
+{
+  module_list = new_module_list;
+  engine_info.module_list = (void*) new_module_list;
+}
+
 
 vsx_module_param_abs* vsx_engine::get_in_param_by_name(vsx_string module_name, vsx_string param_name)
 {
@@ -877,6 +890,11 @@ void vsx_engine::send_state_to_client(vsx_command_list *cmd_out) {
   for (note_iter = note_map.begin(); note_iter != note_map.end(); note_iter++)
   cmd_out->add_raw(vsx_string((*note_iter).second.serialize()));
 #endif
+}
+
+float vsx_engine::get_last_frame_time()
+{
+  return last_frame_time;
 }
 
 double vsx_engine::get_fps() {

@@ -61,8 +61,6 @@ class DLLIMPORT vsx_engine {
 private:
   void constructor_set_default_values();
 
-
-  vsx_string vsxu_base_path;
   vsxf filesystem; // our master filesystem handler
   vsx_engine_environment engine_environment;
   //-- component list
@@ -138,16 +136,9 @@ private:
 public:
 
   // module list access
-  vsx_module_list_abs* get_module_list()
-  {
-    return module_list;
-  }
+  vsx_module_list_abs* get_module_list();
 
-  void set_module_list( vsx_module_list_abs* new_module_list )
-  {
-    module_list = new_module_list;
-  }
-
+  void set_module_list( vsx_module_list_abs* new_module_list );
 
   // scripting interface
   #ifdef VSX_ENG_DLL
@@ -211,6 +202,7 @@ public:
   void process_message_queue(vsx_command_list *cmd_in, vsx_command_list *cmd_out_res, bool exclusive = false, bool ignore_timing = false);
 
   double get_fps();
+  float get_last_frame_time();
   void set_amp(float amp);
   void set_speed(float spd);
   void set_constant_frame_progression(float new_frame_cfp_time);

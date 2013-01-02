@@ -101,7 +101,10 @@ typedef struct
 #define VSX_ENGINE_REWIND 2
 
 typedef struct  {
+  // filesystem handle to use in every module's file operations
   vsxf* filesystem;
+  // module list - so that modules can construct their own vsx_engine's
+  void* module_list;
 
   int state; // stopped or playing
   float amp; // engine effect amplification - can be used freely by the modules
