@@ -1,13 +1,22 @@
+#include <windows.h>
 
 #ifndef VSX_DLOPEN_H
 #define VSX_DLOPEN_H
 
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
   typedef HMODULE vsx_dynamic_object_handle;
-#endif
-#if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
+
+class vsx_dlopen
+{
+public:
+  static vsx_dynamic_object_handle  open(const char *filename);
+  static int                        close(HMODULE handle);
+  static void*                      sym(HMODULE, const char *symbol);
+  static char*                      error();
+};
+
+#else
   typedef void* vsx_dynamic_object_handle;
-#endif
 
 
 class vsx_dlopen
@@ -20,3 +29,7 @@ public:
 };
 
 #endif
+
+#endif
+
+

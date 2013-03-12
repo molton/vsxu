@@ -4,6 +4,8 @@
 
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
   #include <io.h>
+  #include <windows.h>
+  #include <stdio.h>
 #endif
 
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
@@ -22,25 +24,37 @@
 
 #include "vsx_dlopen.h"
 
+
+
+//edited
+#if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
+HMODULE vsx_dlopen::open(const char *filename)
+{
+  HMODULE winlibrary = LoadLibrary( filename );
+  return winlibrary;
+}
+#endif
+#if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
 void* vsx_dlopen::open(const char *filename)
 {
-#if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
-  return LoadLibrary( filename );
-#endif
-#if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
   return dlopen( filename, RTLD_NOW );
-#endif
 }
+#endif
 
-int   vsx_dlopen::close(void* handle)
-{
+
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
+int  vsx_dlopen::close(HMODULE handle)
+{
   return FreeLibrary( handle );
+}
 #endif
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
+  int  vsx_dlopen::close(void* handle)
+{
   return dlclose( handle );
-#endif
 }
+#endif
+
 
 char*  vsx_dlopen::error()
 {
@@ -55,13 +69,17 @@ char*  vsx_dlopen::error()
 #endif
 }
 
-void*  vsx_dlopen::sym(void *handle, const char *symbol)
-{
+
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_WINDOWS
+void* vsx_dlopen::sym(HMODULE handle, const char *symbol)
+{
   return GetProcAddress( handle, symbol );
+}
 #endif
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
+void*  vsx_dlopen::sym(void *handle, const char *symbol)
+{
   return dlsym( handle, symbol );
+}
 #endif
 
-}

@@ -27,6 +27,10 @@
 #include <string>
 #include <vector>
 
+#include "vsx_module_list.h"
+#include "vsx_module_list_abs.h"
+#include "vsx_module_list_factory.h"
+
 #if PLATFORM_FAMILY == PLATFORM_FAMILY_UNIX
 #define VSX_MANAGER_DLLIMPORT
 #else
@@ -119,8 +123,9 @@ public:
   virtual int get_engine_num_modules() = 0;
 };
 
+#endif
+
 extern "C" {
 VSX_MANAGER_DLLIMPORT vsx_manager_abs* manager_factory();
 VSX_MANAGER_DLLIMPORT void manager_destroy(vsx_manager_abs* manager);
 }
-#endif

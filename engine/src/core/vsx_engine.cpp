@@ -15,6 +15,9 @@
 #include "vsx_log.h"
 #include "vsx_engine.h"
 #include "vsx_master_sequencer/vsx_master_sequence_channel.h"
+
+#include "vsx_module_list/vsx_module_list_factory.h"
+
 //#include "vsx_module_dll_info.h"
 #include "vsx_note.h"
 
